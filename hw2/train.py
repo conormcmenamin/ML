@@ -1,4 +1,3 @@
-from typing import Tuple
 import numpy as np
 import tensorflow
 import torch
@@ -7,18 +6,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import sklearn
+from typing import Tuple
 from sklearn.metrics import roc_curve
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.model_selection import KFold
 from sklearn.model_selection import cross_val_score
 from numpy import mean
-from numpy import std
+from numpy import std,array
 from tensorflow.keras import layers
 from tensorflow import keras
 
 
 
-def import_data(filename):
+def import_data(filename, test=False):
     file = open(filename, 'r')
     features = []
     labels = []
@@ -26,14 +26,19 @@ def import_data(filename):
     for ind, line in enumerate(file):
         tokenised_line = line.split(' ')
         data_point = []
-        for i in range(len(tokenised_line)-1):
+        for i in range(len(tokenised_line)):
             data_point.append(float(tokenised_line[i]))
         features.append(data_point)
-        curr_label =float(tokenised_line[10])
-        labels.append(curr_label)
 
-    features=np.asarray(features).astype('float32').reshape((100000,10))
-    train_labels=np.asarray(labels).astype('float32')
+    if test:
+        print('len features:' +str(len(features)))
+        features=np.asarray(features).astype('float32').reshape((10000,10))
+        labels=None
+    else:
+        features=array(features)
+        features,labels=features[:,:-1],features[:,-1]
+        features=np.asarray(features).astype('float32').reshape((100000,10))
+        labels=np.asarray(labels).astype('float32')
 
     return (features,labels)
 
@@ -59,7 +64,10 @@ def minmaxData(matrix):
 
 def train(train_data,labels):
     model = get_model()
+    train_data=np.asarray(train_data)
+    labels=np.asarray(labels)
     model.fit(train_data,labels,epochs=175)
+    model.save('NNModel')
     return model
 
 def kfoldCrossValidation(X,y,k=8):
@@ -106,22 +114,38 @@ def get_model():
 
 if __name__ == '__main__':
     #Data Acuisition
-    train_features,train_labels=import_data('train-io.txt')
-    #Data preprocessing
-    train_data_scaled=standardiseData(train_features)
-    plot_correlation_matrix(train_data_scaled)
-    #TODO: Model Training
-    #model = train(train_data_scaled[:-1000], train_labels[:-1000])
-    #plot_roc(train_labels[-1000:],train_data_scaled[-1000:],model)
-    #Model validation
-    results= kfoldCrossValidation(train_data_scaled,train_labels,k=10)
+    train_features,train_labels=import_data('train-io.txt',test=False)
 
-    avg_acc=0
-    avg_loss=0
-    k=len(results)
-    for i in results:
-        avg_loss += i[0]/k
-        avg_acc+=i[1]/k
-    print('AVG LOSS: ' + str(avg_loss))
-    print('AVG ACCURACY: ' + str(avg_acc))
-    print(avg_loss,avg_acc)
+
+    #Data inspection and preprocessing
+    #plot_correlation_matrix(train_features)
+    train_data_scaled=standardiseData(train_features)
+
+
+    #model = train(train_data_scaled, train_labels)
+    #plot_roc(train_labels[-1000:],train_data_scaled[-1000:],model)
+
+
+    #Model validation
+    #results= kfoldCrossValidation(train_data_scaled,train_labels,k=8)
+    # avg_acc=0
+    # avg_loss=0
+    # k=len(results)
+    # for i in results:
+    #     avg_loss += i[0]/k
+    #     avg_acc+=i[1]/k
+    # print('AVG LOSS: ' + str(avg_loss))
+    # print('AVG ACCURACY: ' + str(avg_acc))
+    # print(avg_loss,avg_acc)
+
+    #Test
+
+    model = keras.models.load_model('NNModel')
+    test_features,test_labels=import_data('test-io.txt',test=True)
+
+    test_o= model.predict(test_features)
+    
+    for i in range(len(test_o)):
+        print(round(float(test_o[i])))
+
+

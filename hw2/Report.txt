@@ -1,0 +1,22 @@
+Data inspection
+I began manually inspecting the dataset given in the training file, to see if I could spot an obvious relationships between the features.
+Needless to say with eleven variables this became tedious and very taxing, which is why I used te seaborn and matplotlib libraries in 
+python, to generate a correlation matrix of the 11 variables (10 features, 1 label) to see if there were any clear candidates for
+removal, this meaning low correlation with the label, combined with a high correlation with another feature. There were two main
+candidates for removal, features 6 and 9. However, after removing each of these individually, as well as in tandem, there was a noticeable
+decrement in accuracy, therefore I opted to include all features.
+
+Data Pre-processing
+After training with an initial architectutre of a neural network (5 layers, 128 neurons to 1, relu for input and hidden layers, sigmoid for 
+output layer) I began to notice accuracy plateau at roughly 62%. I decided to revisit the data to scale it in order to make predictions
+more accurate and in theory, make weights adjust to input features minimally. I experimented with minmax scaling, which increased 
+accuracy substantially, then tried to standardise-scale the data. This showed a massive increase in accuracy (89%) so the choice
+of scaler became obvious
+
+Training & Validation
+With this high an accuracy, I needed a more statistically representative figure for accuracy and loss values. To achieve this,
+I used K-Fold Validation and found an average accuracy of 92%. I tried adjusting hyperparameters such as activation functions 
+in the hidden layers, like swish, tanh, leak-relu, finding that none of these outperformed relu. Sigmoid seemed to perform best as
+the output layer activation, although I did try softmax by converting labels to one-hot encoding equivalents, then used categorical
+crossentropy as the loss. The former binary-crossentropy combined with sigmoid activation yielded far superior results.
+
