@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 import tensorflow
 import torch
@@ -17,29 +18,28 @@ from tensorflow import keras
 
 
 
-train_file = open('train-io.txt', 'r')
-train_data_in = []
-train_data_out = []
+def import_data(filename):
+    file = open(filename, 'r')
+    features = []
+    labels = []
 
-for ind, line in enumerate(train_file):
-    tokenised_line = line.split(' ')
-    data_point = []
-    for i in range(len(tokenised_line)-1):
-        if not i in []:                                     #Features to be eliminated
+    for ind, line in enumerate(file):
+        tokenised_line = line.split(' ')
+        data_point = []
+        for i in range(len(tokenised_line)-1):
             data_point.append(float(tokenised_line[i]))
-    train_data_in.append(data_point)
-    curr_label =float(tokenised_line[10])
-    train_data_out.append(curr_label)
+        features.append(data_point)
+        curr_label =float(tokenised_line[10])
+        labels.append(curr_label)
 
+    features=np.asarray(features).astype('float32').reshape((100000,10))
+    train_labels=np.asarray(labels).astype('float32')
 
-
-
-train_data_in=np.asarray(train_data_in).astype('float32').reshape((100000,10))
-train_data_out=np.asarray(train_data_out).astype('float32')
+    return (features,labels)
 
 def plot_correlation_matrix(data):
-    data = pd.DataFrame(train_data_in, columns=range(1,11))
-    data['target'] = train_data_out
+    data = pd.DataFrame(train_features, columns=range(1,11))
+    data['target'] = train_labels
     data.head()
     corr=data.corr()
     mask = np.triu(np.ones_like(corr,dtype=np.bool))
@@ -72,7 +72,11 @@ def kfoldCrossValidation(X,y,k=8):
         train_y=np.concatenate((y[:num_validation_samples*fold] , y[num_validation_samples*(fold+1):]))
         model=get_model()
         model.fit(train_x,train_y, epochs=175)
-        validation_scores.append(model.evaluate(valid_x,valid_y))
+        valid_x=np.asarray(valid_x)
+        valid_y=np.asarray(valid_y)
+        eval=model.evaluate(valid_x,valid_y)
+        validation_scores.append(eval)
+
     return validation_scores
 
 def plot_roc(labels,data, model):
@@ -101,16 +105,16 @@ def get_model():
 
 
 if __name__ == '__main__':
+    #Data Acuisition
+    train_features,train_labels=import_data('train-io.txt')
     #Data preprocessing
-    train_data_scaled=standardiseData(train_data_in)
-    #plot_correlation_matrix(train_data_scaled)
+    train_data_scaled=standardiseData(train_features)
+    plot_correlation_matrix(train_data_scaled)
     #TODO: Model Training
-    model = train(train_data_scaled[:-1000], train_data_out[:-1000])
-    plot_roc(train_data_out[-1000:],train_data_scaled[-1000:],model)
+    #model = train(train_data_scaled[:-1000], train_labels[:-1000])
+    #plot_roc(train_labels[-1000:],train_data_scaled[-1000:],model)
     #Model validation
-    #results= kfoldCrossValidation(train_data_scaled,train_data_out)
-
-
+    results= kfoldCrossValidation(train_data_scaled,train_labels,k=10)
 
     avg_acc=0
     avg_loss=0
@@ -120,3 +124,4 @@ if __name__ == '__main__':
         avg_acc+=i[1]/k
     print('AVG LOSS: ' + str(avg_loss))
     print('AVG ACCURACY: ' + str(avg_acc))
+    print(avg_loss,avg_acc)
