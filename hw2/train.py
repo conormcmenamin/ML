@@ -102,10 +102,10 @@ def get_model():
     model.add(layers.Dense(64, input_dim=10, activation='relu'))
     model.add(layers.Dense(32, activation='relu'))
     model.add(layers.Dense(16, activation='relu'))
-    model.add(layers.Dense(8, activation='relu'))
+    model.add(layers.Dense(16, activation='relu'))
     model.add(layers.Dense(1, activation='sigmoid'))
 
-    opt=keras.optimizers.Adam(learning_rate=0.0008)
+    opt=keras.optimizers.Adam(learning_rate=0.001)
 
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
     return model
@@ -113,20 +113,20 @@ def get_model():
 
 
 if __name__ == '__main__':
-    #Data Acuisition
+    #=====Data Acuisition=====
     train_features,train_labels=import_data('train-io.txt',test=False)
 
 
-    #Data inspection and preprocessing
+    #=====Data inspection and preprocessing=====
     #plot_correlation_matrix(train_features)
     train_data_scaled=standardiseData(train_features)
 
-
+    #=====Model Training=====
     #model = train(train_data_scaled, train_labels)
     #plot_roc(train_labels[-1000:],train_data_scaled[-1000:],model)
 
 
-    #Model validation
+    #=====Model validation=====
     #results= kfoldCrossValidation(train_data_scaled,train_labels,k=8)
     # avg_acc=0
     # avg_loss=0
@@ -138,14 +138,15 @@ if __name__ == '__main__':
     # print('AVG ACCURACY: ' + str(avg_acc))
     # print(avg_loss,avg_acc)
 
-    #Test
+    #=====Test=====
 
     model = keras.models.load_model('NNModel')
     test_features,test_labels=import_data('test-io.txt',test=True)
 
     test_o= model.predict(test_features)
-    
+    test_file=open('test-o.txt','a')
     for i in range(len(test_o)):
-        print(round(float(test_o[i])))
+        pred=round(float(test_o[i]))
+        test_file.write(str(pred)+'\n')
 
-
+    print('Done.\n')

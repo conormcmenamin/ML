@@ -16,7 +16,7 @@ of scaler became obvious
 Training & Validation
 With this high an accuracy, I needed a more statistically representative figure for accuracy and loss values. To achieve this,
 I used K-Fold Validation and found an average accuracy of 92%. I tried adjusting hyperparameters such as activation functions 
-in the hidden layers, like swish, tanh, leak-relu, finding that none of these outperformed relu. Sigmoid seemed to perform best as
+in the hidden layers, like swish, tanh, leaky-relu, finding that none of these outperformed relu. Sigmoid seemed to perform best as
 the output layer activation, although I did try softmax by converting labels to one-hot encoding equivalents, then used categorical
 crossentropy as the loss. The former binary-crossentropy combined with sigmoid activation yielded far superior results.
 
